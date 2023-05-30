@@ -1,4 +1,4 @@
-const { createBooking, findBookingByBookingNum, deleteBooking } = require('../models/booking.model')
+const { createBooking, findBookingByBookingNum, deleteBooking, editBooking, getBookingSchedule } = require('../models/booking.model')
 
 async function createBookingCtrl(request, response) {
     try {
@@ -14,7 +14,7 @@ async function createBookingCtrl(request, response) {
             message: 'Booking created successfully', 
             booking: {
                 customerEmail,
-                startDate,
+                startDate: booking.startDate,
                 startTime: parsedStartTime,
                 numberOfPlayers: players.length,
                 shoeSizes: players.map(player => player.shoeSize),
@@ -26,6 +26,17 @@ async function createBookingCtrl(request, response) {
             }  
         })
 
+    } catch (error) {
+        response.json({ success: false, message: error.message })
+    }
+}
+
+async function getBookingScheduleCtrl(request, response) {
+    const { start_date, end_date } = request.headers
+    const input = { startDate: start_date, endDate: end_date }
+    try {
+        const result = await getBookingSchedule(input)
+        response.json({ success: true, result })
     } catch (error) {
         response.json({ success: false, message: error.message })
     }
@@ -86,9 +97,51 @@ async function deleteBookingCtrl(request, response) {
     }
 }
 
-async function editBookingCtrl() {
+async function editBookingCtrl(request, response) {
+    const { bookingNumber, amtPlayers, shoeSizes, requestedAmtOfLanes } = request.body
+    const input = {
+        bookingNumber,
+        amtPlayers: amtPlayers ? amtPlayers : null,
+        shoeSizes,
+        requestedAmtOfLanes
+    }
+    try {
+        await editBooking(input)
+        const updatedBooking = await findBookingByBookingNum(bookingNumber)
+        const { 
+            customerEmail, 
+            startDate, 
+            startTime, 
+            players, 
+            lanes, 
+            totalPrice, 
+            createdAt
+        } = updatedBooking
 
+        const parsedStartTime = startTime < 10 ? `0${startTime}.00` : `${startTime}.00`
+
+        response.json({
+            success: true, 
+            booking: {
+                customerEmail,
+                startDate,
+                startTime: parsedStartTime,
+                numberOfPlayers: players.length,
+                shoeSizes: players.map(player => player.shoeSize),
+                numberOfLanes: lanes.length,
+                laneIDs: lanes,
+                totalPrice,
+                bookingNumber,
+                createdAt,
+                modifiedAt: updatedBooking.modifiedAt ? 
+                    updatedBooking.modifiedAt : 
+                    'Never modified'
+            } 
+        })
+    } catch (error) {
+        response.status(400).json({ success: false, message: error.message })
+    }
 }
 
 
-module.exports = { findBookingCtrl, createBookingCtrl, deleteBookingCtrl, editBookingCtrl }
+module.exports = { findBookingCtrl, createBookingCtrl, deleteBookingCtrl, editBookingCtrl, getBookingScheduleCtrl }

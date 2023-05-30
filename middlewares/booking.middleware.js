@@ -19,6 +19,8 @@ const createBookingSchema = Joi.object({
     requestedAmtOfLanes: Joi.number().min(1).max(8).required()
 })
 
+const scheduleDateSchema = Joi.date().min('now').required()
+
 const bookingByIdSchema = Joi.string().required()
 
 async function checkHeaderBookingId(request, response, next) {
@@ -29,6 +31,21 @@ async function checkHeaderBookingId(request, response, next) {
     } else {
         next()
     }
+}
+
+async function checkGetBookingSchedule(request, response, next) {
+    const { start_date, end_date } = request.headers
+    const validationA = scheduleDateSchema.validate(start_date)
+    const validationB = scheduleDateSchema.validate(end_date)
+
+    if (validationA.error) {
+        response.status(400).json({ success: false, message: validationA.error.message })
+    } else if (validationB.error) {
+        response.status(400).json({ success: false, message: validationB.error.message })
+    } else {
+        next()
+    }
+
 }
 
 async function checkCreateBooking(request, response, next) {
@@ -47,4 +64,4 @@ async function checkCreateBooking(request, response, next) {
     }
 }
 
-module.exports = { checkCreateBooking, checkHeaderBookingId }
+module.exports = { checkCreateBooking, checkHeaderBookingId, checkGetBookingSchedule }
