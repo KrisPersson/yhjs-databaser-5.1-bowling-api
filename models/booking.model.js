@@ -76,8 +76,9 @@ async function editBooking(input) {
 
             if (newProposedAmtOfLanes <= 8) {
 
-                const newUnavailableLanes = 
-                unavailableLanes.filter(lane => !bookingInDb.lanes.includes(lane))
+                const newUnavailableLanes = unavailableLanes.filter(
+                    lane => !bookingInDb.lanes.includes(lane)
+                )
 
                 const assignedLanes = []
 
@@ -134,9 +135,8 @@ async function getBookingSchedule(input) {
     const bookings = await Booking.where("startDate")
         .gte(start)
         .lte(end)
-    console.log(bookings)
 
-
+    return bookings
 }
 
 module.exports = { createBooking, findBookingByBookingNum, deleteBooking, editBooking, getBookingSchedule }

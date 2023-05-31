@@ -1,4 +1,5 @@
 const { createBooking, findBookingByBookingNum, deleteBooking, editBooking, getBookingSchedule } = require('../models/booking.model')
+const { parseBookingSchedule } = require('../utils')
 
 async function createBookingCtrl(request, response) {
     try {
@@ -14,7 +15,7 @@ async function createBookingCtrl(request, response) {
             message: 'Booking created successfully', 
             booking: {
                 customerEmail,
-                startDate: booking.startDate,
+                startDate: booking.startDate.toLocaleDateString(),
                 startTime: parsedStartTime,
                 numberOfPlayers: players.length,
                 shoeSizes: players.map(player => player.shoeSize),
@@ -35,12 +36,14 @@ async function getBookingScheduleCtrl(request, response) {
     const { start_date, end_date } = request.headers
     const input = { startDate: start_date, endDate: end_date }
     try {
-        const result = await getBookingSchedule(input)
-        response.json({ success: true, result })
+        const bookings = await getBookingSchedule(input)
+        const parsedBookingSchedule = parseBookingSchedule(bookings)
+        response.json({ success: true, bookingSchedule: parsedBookingSchedule })
     } catch (error) {
         response.json({ success: false, message: error.message })
     }
 }
+
 
 async function findBookingCtrl(request, response) {
     try {
@@ -68,7 +71,7 @@ async function findBookingCtrl(request, response) {
                 success: true, 
                 booking: {
                     customerEmail,
-                    startDate,
+                    startDate: startDate.toLocaleDateString(),
                     startTime: parsedStartTime,
                     numberOfPlayers: players.length,
                     shoeSizes: players.map(player => player.shoeSize),
@@ -124,7 +127,7 @@ async function editBookingCtrl(request, response) {
             success: true, 
             booking: {
                 customerEmail,
-                startDate,
+                startDate: startDate.toLocaleDateString(),
                 startTime: parsedStartTime,
                 numberOfPlayers: players.length,
                 shoeSizes: players.map(player => player.shoeSize),
