@@ -8,6 +8,7 @@ API for a Bowling Alley
 /api/booking
 
   GET - Finds and returns a specific Booking, based on the provided bookingnumber in request.headers.
+  
   POST - Creates a new Booking, based on the request body.
   
     {
